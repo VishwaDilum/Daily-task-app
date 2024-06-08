@@ -1,10 +1,10 @@
+require('dotenv').config();
 var mysql      = require('mysql2');
 var connection = mysql.createConnection({
-  host     : 'localhost',
-  user     : 'root',
-  password : ''
+  host     : process.env.HOST_NAME,
+  user     : process.env.USER_NAME,
+  password : process.env.PASSWORD
 });
-
 connection.connect();
 
 connection.query('SELECT 1 + 1 AS solution', function(err, rows, fields) {
@@ -13,3 +13,4 @@ connection.query('SELECT 1 + 1 AS solution', function(err, rows, fields) {
 });
 
 // connection.end();
+module.exports = connection;
