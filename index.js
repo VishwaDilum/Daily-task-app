@@ -6,9 +6,10 @@ const express = require('express');
 const { transporter, generateOTP } = require('./nodemailer');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const { insertCustomer } = require('./db_connection');
+const { insertUser , isUser } = require('./db_connection');
 const app = express();
 const PORT = 5000;
+const { generateToken } = require('./auth');
 
 let storeOtp = null;
 
@@ -33,14 +34,42 @@ app.post('/confirm-otp', (req, res) => {
 })
 
 
-app.post('/sign-up', (req, res) => {
+app.post('/sign-up', async (req, res) => {
   const { email, password, firstName, lastName } = req.body;
-  insertCustomer(email,password,firstName,lastName)
+
+  // Check if all required fields are provided
   if (!email || !password || !firstName || !lastName) {
     return res.status(400).send("All fields are required.");
   }
-  res.status(500).send("Internal server error occurred.");
-})
+
+  try {
+    const isInsert = await insertUser(email, password, firstName, lastName);
+    if (isInsert) {
+      return res.status(201).send("User registered successfully.");
+    } else {
+      return res.status(500).send("Failed to register user.");
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send("Internal server error occurred.");
+  }
+});
+
+app.post('/sign-in', async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).send("All fields are required.");
+  }
+
+  const isUsers = await isUser(email, password);
+  if (isUsers) {
+    const token = generateToken(email); // Generate JWT token
+    res.status(200).send({ message: "Authenticated Successfully", token });
+  } else {
+    res.status(401).send("Authentication Failed");
+  }
+});
 
 
 app.post('/send-otp', (req, res) => {

@@ -16,17 +16,50 @@ connection.connect(function(err) {
   console.log('Connected as id ' + connection.threadId);
 });
 
-function insertCustomer(email, password, firstName, lastName, callback) {
-  var sql = "INSERT INTO person (email, password, first_name, last_name) VALUES (?, ?, ?, ?)";
-  connection.query(sql, [email, password, firstName, lastName], function(err, result) {
-    if (typeof callback === 'function') {
-      if (err) return callback(err);
-      callback(null, result.insertId);
-    } else {
-      console.error('Callback is not a function');
-    }
+function insertUser(email, password, firstName, lastName) {
+  return new Promise((resolve, reject) => {                 
+    const sql = "INSERT INTO person (email, password, first_name, last_name) VALUES (?, ?, ?, ?)";
+    connection.query(sql, [email, password, firstName, lastName], (err, result) => {
+      if (err) {
+        console.error('Error during query execution: ' + err.stack);
+        return reject(err);
+      }
+      if (result && result.serverStatus > 0) {
+        console.log("Insert Confirmed: " + result.serverStatus);
+        return resolve(true);
+      }
+      resolve(false);
+    });
   });
 }
+
+function isUser(email, password) {
+
+  const emailUser= email;
+  const passwordUser = password;
+
+  return new Promise((resolve, reject) => {
+    const sql = 'SELECT email, password, first_name, last_name FROM person WHERE email = ?';
+    connection.query(sql, [email], (err, result) => {
+      if (err) {
+        console.error('Error during query execution: ' + err.stack);
+        return reject(err);
+      }
+      if (result && result.length > 0) {
+        console.log("User Email:", result[0].email);
+        console.log("User Password:", result[0].password);
+        if(emailUser === result[0].email && result[0].password == passwordUser){
+          console.log("Auther Confirnmd")
+          return resolve(true);
+        }
+        return resolve(false);
+      }
+      console.log("User not found");
+      resolve(false);
+    });
+  });
+}
+
 
 function closeConnection() {
   connection.end(function(err) {
@@ -39,6 +72,7 @@ function closeConnection() {
 }
 
 module.exports = {
-  insertCustomer,
-  closeConnection
+  insertUser,
+  closeConnection,
+  isUser
 };
