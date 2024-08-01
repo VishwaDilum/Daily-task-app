@@ -1,15 +1,14 @@
 const { createHmac } = require('crypto');
 const os = require('os');
 const cons = require('console');
-require('./db_connection');
 const express = require('express');
 const { transporter, generateOTP } = require('./nodemailer');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const { insertUser , isUser } = require('./db_connection');
+const { insertUser , isUser, changePassword } = require('./db_connection');
 const app = express();
 const PORT = 5000;
-const { generateToken } = require('./auth');
+const { generateToken,tokenValidation } = require('./auth');
 
 let storeOtp = null;
 
@@ -64,8 +63,8 @@ app.post('/sign-in', async (req, res) => {
 
   const isUsers = await isUser(email, password);
   if (isUsers) {
-    const token = generateToken(email); // Generate JWT token
-    res.status(200).send({ message: "Authenticated Successfully", token });
+    const token = generateToken(email,true); // Generate JWT token
+    res.status(200).send({ message: "Authenticated Successfully", token , isUsers});
   } else {
     res.status(401).send("Authentication Failed");
   }
@@ -100,3 +99,28 @@ app.post('/send-otp', (req, res) => {
     }
   });
 });
+
+app.post('/resetpass', async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).send("All fields are required.");
+  }
+
+  const isChange = await changePassword(email, password);
+  if (isChange) {
+    res.status(200).send({ message: "Password Change Successfully"});
+  } else {
+    res.status(401).send("Failed");
+  }
+});
+app.post('/auth/verifytoken',async(req,res)=>{
+  const {token} = req.body;
+  const isValid = await tokenValidation(token);
+  if(isValid){
+    res.status(200).send("Valid Token")
+  }
+  if(!isValid){
+    res.status(404).send("Expired token")
+  }
+})
