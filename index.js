@@ -5,13 +5,11 @@ const express = require('express');
 const { transporter, generateOTP } = require('./nodemailer');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const { insertUser , isUser, changePassword } = require('./db_connection');
+const { insertUser , isUser, changePassword, addTask , lastInsert } = require('./sequalize/sequalize');
 const app = express();
 const PORT = 5000;
 const { generateToken,tokenValidation } = require('./auth');
-
 let storeOtp = null;
-
 app.use(bodyParser.json());
 app.use(cors());
 
@@ -123,4 +121,10 @@ app.post('/auth/verifytoken',async(req,res)=>{
   if(!isValid){
     res.status(404).send("Expired token")
   }
+})
+
+app.post('/add-task',(req,res)=>{
+ const {email,date,priority,category,description} =  req.body;
+ addTask(email,date,priority,category,description);
+  
 })
