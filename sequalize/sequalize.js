@@ -448,7 +448,7 @@ function updateComplteTask(id, status) {
 }
 async function getAllTask(targetEmail) {
   try {
-    const userData = await all_task.findAll({
+    const userData = await pending_task.findAll({
       where: {
         Email: targetEmail,
       },
@@ -513,6 +513,35 @@ async function updateToComplted(id, email, date, category, description, priority
     console.error('Error retrieving tasks:', error); // Updated error message for clarity
   }
 }
+
+async function allOngoingTask(targetEmail, targetDate) {
+  try {
+    const userData = await onGoingTask.findAll({
+      where: {
+        Email: targetEmail,
+        Date: targetDate
+      },
+    });
+    return userData;
+  } catch (error) {
+    console.error('Error retrieving tasks:', userData); // Updated error message for clarity
+  }
+}
+async function allCompltedTask(targetEmail, targetDate) {
+  try {
+    const userData = await complete_task.findAll({
+      where: {
+        Email: targetEmail,
+        Date: targetDate
+      },
+    });
+    return userData;
+  } catch (error) {
+    console.error('Error retrieving tasks:', userData); // Updated error message for clarity
+  }
+}
 module.exports = {
-  insertUser, changePassword, isUser, lastInsert, addTask, updateOnGoing, updateComplteTask, getAllTask, todayTask, updateToOngoing, updateToComplted
+  insertUser, changePassword, isUser, lastInsert, addTask, updateOnGoing,
+   updateComplteTask, getAllTask, todayTask, updateToOngoing, updateToComplted,
+   allOngoingTask,allCompltedTask
 };

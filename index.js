@@ -5,7 +5,9 @@ const express = require('express');
 const { transporter, generateOTP } = require('./nodemailer');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const { insertUser, isUser, changePassword, addTask, lastInsert, updateOnGoing, updateComplteTask, getAllTask, todayTask,updateToOngoing,updateToComplted } = require('./sequalize/sequalize');
+const { insertUser, isUser, changePassword, addTask, lastInsert,
+   updateOnGoing, updateComplteTask, getAllTask, todayTask,updateToOngoing,
+   updateToComplted,allOngoingTask,allCompltedTask } = require('./sequalize/sequalize');
 const app = express();
 const PORT = 5000;
 const { generateToken, tokenValidation } = require('./auth');
@@ -145,7 +147,7 @@ app.post('/onGoing-all', async (req, res) => {
 app.post('/complte-all', async (req, res) => {
 
 })
-app.post('/task-all', async (req, res) => {
+app.post('/pending-all-task', async (req, res) => {
   const { targetEmail } = req.body
   try {
     const allTask = await getAllTask(targetEmail);
@@ -178,10 +180,30 @@ app.post('/update-ongoing-task', async (req, res) => {
     res.status(404).send("Something wrong")
   }
 })
-app.post('/update-completed-task', async (req, res) => {
+app.post('/update-complete-task', async (req, res) => {
   const { id,email,date,category,description,priority } = req.body;
   try {
     const dayTask = await updateToComplted(id,email,date,category,description,priority)
+    res.json(dayTask).status(200)
+  } catch (error) {
+    res.status(404).send("Something wrong")
+  }
+})
+
+app.post('/ongoing-task', async (req, res) => {
+  const { targetEmail, targetDate } = req.body;
+  try {
+    const dayTask = await allOngoingTask(targetEmail, targetDate)
+    res.json(dayTask).status(200)
+  } catch (error) {
+    res.status(404).send("Something wrong")
+  }
+})
+
+app.post('/completed-task', async (req, res) => {
+  const { targetEmail, targetDate } = req.body;
+  try {
+    const dayTask = await allCompltedTask(targetEmail, targetDate)
     res.json(dayTask).status(200)
   } catch (error) {
     res.status(404).send("Something wrong")
