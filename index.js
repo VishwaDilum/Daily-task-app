@@ -5,7 +5,7 @@ const express = require('express');
 const { transporter, generateOTP } = require('./nodemailer');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const { insertUser, isUser, changePassword, addTask, lastInsert, updateOnGoing,updateComplteTask,getAllTask } = require('./sequalize/sequalize');
+const { insertUser, isUser, changePassword, addTask, lastInsert, updateOnGoing, updateComplteTask, getAllTask, todayTask,updateToOngoing,updateToComplted } = require('./sequalize/sequalize');
 const app = express();
 const PORT = 5000;
 const { generateToken, tokenValidation } = require('./auth');
@@ -123,30 +123,67 @@ app.post('/auth/verifytoken', async (req, res) => {
   }
 })
 
-app.post('/add-task', async  (req, res) => {
+app.post('/add-task', async (req, res) => {
   const { email, date, priority, category, description } = req.body;
-  addTask(email, date, priority, category, description);
+  try {
+    addTask(email, date, priority, category, description);
+  } catch (error) {
+    res.send(error)
+  }
 
 })
 app.post('/update-task-onGoing', async (req, res) => {
-  const {id,status} = res.body;
-  updateOnGoing(id,status);
+  const { id, status } = res.body;
+  updateOnGoing(id, status);
 })
-app.post('/update-task-complte',async  (req, res) => {
-  const {id,status} = res.body;
-  updateComplteTask(id,status)
+app.post('/update-task-complte', async (req, res) => {
+  const { id, status } = res.body;
+  updateComplteTask(id, status)
 })
-app.post('/onGoing-all',async  (req, res) => {
+app.post('/onGoing-all', async (req, res) => {
 })
 app.post('/complte-all', async (req, res) => {
 
 })
-app.post('/task-all',async  (req, res) => {
-   const {targetEmail }= req.body
-  try{
-    const allTask  = await getAllTask(targetEmail);
-  res.json(allTask)
-  }catch(error){
+app.post('/task-all', async (req, res) => {
+  const { targetEmail } = req.body
+  try {
+    const allTask = await getAllTask(targetEmail);
+    allTask.filter((a) => {
+      console.log(allTask.id);
+    })
+    res.json(allTask)
+  } catch (error) {
+    res.status(404).send("Something wrong")
+  }
+})
+
+app.post('/today-task', async (req, res) => {
+  const { targetEmail, targetDate } = req.body;
+  try {
+    const dayTask = await todayTask(targetEmail, targetDate)
+    res.json(dayTask).status(200)
+  } catch (error) {
+    res.status(404).send("Something wrong")
+  }
+})
+
+app.post('/update-ongoing-task', async (req, res) => {
+  const { id,email,date,category,description,priority } = req.body;
+  try {
+    const dayTask = await updateToOngoing(id,email,date,category,description,priority)
+    res.json(dayTask).status(200)
+  } catch (error) {
+    console.log(error)
+    res.status(404).send("Something wrong")
+  }
+})
+app.post('/update-completed-task', async (req, res) => {
+  const { id,email,date,category,description,priority } = req.body;
+  try {
+    const dayTask = await updateToComplted(id,email,date,category,description,priority)
+    res.json(dayTask).status(200)
+  } catch (error) {
     res.status(404).send("Something wrong")
   }
 })
