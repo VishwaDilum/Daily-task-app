@@ -5,10 +5,10 @@ const express = require('express');
 const { transporter, generateOTP } = require('./nodemailer');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const { insertUser , isUser, changePassword, addTask , lastInsert } = require('./sequalize/sequalize');
+const { insertUser, isUser, changePassword, addTask, lastInsert, updateOnGoing,updateComplteTask,getAllTask } = require('./sequalize/sequalize');
 const app = express();
 const PORT = 5000;
-const { generateToken,tokenValidation } = require('./auth');
+const { generateToken, tokenValidation } = require('./auth');
 let storeOtp = null;
 app.use(bodyParser.json());
 app.use(cors());
@@ -61,8 +61,8 @@ app.post('/sign-in', async (req, res) => {
 
   const isUsers = await isUser(email, password);
   if (isUsers) {
-    const token = generateToken(email,true); // Generate JWT token
-    res.status(200).send({ message: "Authenticated Successfully", token , isUsers});
+    const token = generateToken(email, true); // Generate JWT token
+    res.status(200).send({ message: "Authenticated Successfully", token, isUsers });
   } else {
     res.status(401).send("Authentication Failed");
   }
@@ -107,24 +107,46 @@ app.post('/resetpass', async (req, res) => {
 
   const isChange = await changePassword(email, password);
   if (isChange) {
-    res.status(200).send({ message: "Password Change Successfully"});
+    res.status(200).send({ message: "Password Change Successfully" });
   } else {
     res.status(401).send("Failed");
   }
 });
-app.post('/auth/verifytoken',async(req,res)=>{
-  const {token} = req.body;
+app.post('/auth/verifytoken', async (req, res) => {
+  const { token } = req.body;
   const isValid = await tokenValidation(token);
-  if(isValid){
+  if (isValid) {
     res.status(200).send("Valid Token")
   }
-  if(!isValid){
+  if (!isValid) {
     res.status(404).send("Expired token")
   }
 })
 
-app.post('/add-task',(req,res)=>{
- const {email,date,priority,category,description} =  req.body;
- addTask(email,date,priority,category,description);
-  
+app.post('/add-task', async  (req, res) => {
+  const { email, date, priority, category, description } = req.body;
+  addTask(email, date, priority, category, description);
+
+})
+app.post('/update-task-onGoing', async (req, res) => {
+  const {id,status} = res.body;
+  updateOnGoing(id,status);
+})
+app.post('/update-task-complte',async  (req, res) => {
+  const {id,status} = res.body;
+  updateComplteTask(id,status)
+})
+app.post('/onGoing-all',async  (req, res) => {
+})
+app.post('/complte-all', async (req, res) => {
+
+})
+app.post('/task-all',async  (req, res) => {
+   const {targetEmail }= req.body
+  try{
+    const allTask  = await getAllTask(targetEmail);
+  res.json(allTask)
+  }catch(error){
+    res.status(404).send("Something wrong")
+  }
 })

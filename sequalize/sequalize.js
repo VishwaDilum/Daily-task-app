@@ -440,7 +440,25 @@ async function insertUser(email, password, firstName, lastName) {
     return 'D' + newIdNumber.toString().padStart(4, '0');
 }
 
+function updateOnGoing(id,status){
+
+}
+function updateComplteTask(id,status){
+
+}
+async function getAllTask(targetEmail) {
+  try {
+    const userData = await all_task.findAll({
+      where: {
+        Email: targetEmail,
+      },
+    });
+    return userData;
+  } catch (error) {
+    console.error('Error retrieving tasks:', userData); // Updated error message for clarity
+  }
+}
 
   module.exports = {
-    insertUser, changePassword, isUser,lastInsert,addTask,
+    insertUser, changePassword, isUser,lastInsert,addTask,updateOnGoing,updateComplteTask,getAllTask
   };
